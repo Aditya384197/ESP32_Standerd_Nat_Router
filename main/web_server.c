@@ -773,7 +773,8 @@ void web_server_start(void)
     httpd_config_t c=HTTPD_DEFAULT_CONFIG();
     c.server_port=80;
     c.max_uri_handlers=32;
-    c.max_open_sockets=8;
+    /* LWIP provides 10 sockets here; HTTP server reserves 3 internally, so 7 is the safe maximum. */
+    c.max_open_sockets=7;
     c.stack_size=8192;
     c.core_id=1;
     c.task_priority=5;
