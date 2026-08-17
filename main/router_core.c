@@ -414,7 +414,9 @@ esp_err_t router_set_performance(uint8_t percent)
 
     wifi_ps_type_t ps = percent >= 80 ? WIFI_PS_NONE :
                         (percent >= 50 ? WIFI_PS_MIN_MODEM : WIFI_PS_MAX_MODEM);
-    int8_t tx = (int8_t)(8 + ((uint16_t)(percent - 10) * 72) / 90);
+    /* ESP32 max TX power is expressed in quarter-dBm and tops out at 78 (19.5 dBm). */
+    int8_t tx = (int8_t)(8 + ((uint16_t)(percent - 10) * 70) / 90);
+    if (tx > 78) tx = 78;
 
     esp_err_t e = esp_wifi_set_ps(ps);
     if (e == ESP_OK) {
@@ -456,12 +458,12 @@ void router_core_start(void)
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     cfg.wifi_task_core_id = 0;
-    cfg.static_rx_buf_num = 12;
+    cfg.static_rx_buf_num = 8;
     cfg.dynamic_rx_buf_num = 32;
     cfg.static_tx_buf_num = 16;
     cfg.cache_tx_buf_num = 32;
-    cfg.dynamic_tx_buf_num = 24;
-    cfg.rx_ba_win = 12;
+    cfg.dynamic_tx_buf_num = 32;
+    cfg.rx_ba_win = 16;
     cfg.ampdu_rx_enable = 1;
     cfg.ampdu_tx_enable = 1;
     cfg.amsdu_tx_enable = 1;
