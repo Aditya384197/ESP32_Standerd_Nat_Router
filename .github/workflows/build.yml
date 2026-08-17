@@ -1,0 +1,57 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ESP32 NAT Extender Build
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:release-v6.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /opt/esp/idf/export.sh
+          idf.py --version
+          idf.py set-target esp32
+          idf.py fullclean
+          idf.py build
+          idf.py size
+          idf.py merge-bin -o build/merged.bin -f raw
+
+      - name: Verify outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s build/bootloader/bootloader.bin
+          test -s build/partition_table/partition-table.bin
+          test -s build/ota_data_initial.bin
+          test -s build/esp32_nat_extender.bin
+          test -s build/merged.bin
+          test -s build/flash_args
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ESP32-NAT-Extender
+          path: |
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/ota_data_initial.bin
+            build/esp32_nat_extender.bin
+            build/merged.bin
+            build/flash_args
+          if-no-files-found: error
+          retention-days: 30
