@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: espressif/idf:release-v6.1
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +30,10 @@ jobs:
           idf.py fullclean
           idf.py build
           idf.py size
-          idf.py merge-bin -o build/merged.bin -f raw
+
+          # idf.py executes merge-bin from the build directory.
+          # Therefore the output must be relative to that directory.
+          idf.py merge-bin -o merged.bin -f raw
 
       - name: Verify outputs
         shell: bash
