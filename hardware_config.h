@@ -1,0 +1,21 @@
+#pragma once
+
+#define DEFAULT_STA_SSID "Airtel_2.4GHz"
+#define DEFAULT_STA_PASS "Kgf@0987"
+#define DEFAULT_AP_SSID "ESP32_router"
+#define DEFAULT_AP_PASS "ak@12345"
+
+#define LED_RED_GPIO 25
+#define LED_YELLOW_GPIO 26
+#define LED_GREEN_GPIO 27
+#define FAN_GPIO 33
+
+#define FAN_ON_TEMP_C 65.0f
+#define FAN_OFF_TEMP_C 55.0f
+
+#define AP_MAX_CONNECTIONS 8
+
+#define HOP_SCAN_DWELL_MS 60
+#define HOP_SCAN_DWELL_MAX_MS 80
+#define HOP_RETRY_INITIAL_MS 250
+#define HOP_RETRY_MAX_MS 5000
