@@ -117,10 +117,39 @@ static void set_napt(bool enable)
 
 static void configure_radio(void)
 {
-    ESP_ERROR_CHECK(esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
-    ESP_ERROR_CHECK(esp_wifi_set_protocol(WIFI_IF_AP, WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N));
-    ESP_ERROR_CHECK(esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW40));
-    ESP_ERROR_CHECK(esp_wifi_set_bandwidth(WIFI_IF_AP, WIFI_BW40));
+    /*
+     * ESP32 2.4 GHz supports B/G/N. Keep 802.11b enabled as part of the
+     * standard BGN bitmap for maximum AP compatibility. The previous G|N
+     * bitmap caused ESP_ERR_INVALID_ARG on the tested ESP-IDF/ESP32 build,
+     * aborting the application before normal startup.
+     */
+    const uint8_t protocol = WIFI_PROTOCOL_11B |
+                             WIFI_PROTOCOL_11G |
+                             WIFI_PROTOCOL_11N;
+
+    esp_err_t err = esp_wifi_set_protocol(WIFI_IF_STA, protocol);
+    if (err != ESP_OK) {
+        router_log_write("WARN", "STA Wi-Fi protocol configuration failed");
+    }
+
+    err = esp_wifi_set_protocol(WIFI_IF_AP, protocol);
+    if (err != ESP_OK) {
+        router_log_write("WARN", "AP Wi-Fi protocol configuration failed");
+    }
+
+    /*
+     * 40 MHz is used only when 802.11n is available. If a driver/configuration
+     * rejects HT40, keep the router alive rather than aborting the whole app.
+     */
+    err = esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW40);
+    if (err != ESP_OK) {
+        router_log_write("WARN", "STA HT40 configuration failed; continuing");
+    }
+
+    err = esp_wifi_set_bandwidth(WIFI_IF_AP, WIFI_BW40);
+    if (err != ESP_OK) {
+        router_log_write("WARN", "AP HT40 configuration failed; continuing");
+    }
 }
 
 static void apply_wifi_config(void)
